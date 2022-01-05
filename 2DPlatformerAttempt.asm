@@ -19,11 +19,11 @@ yCPosition byte ?
 main PROC far
 
 ; draw ground
-             mov dl,0
-             mov dh,29
-             call gotoxy
-             mov edx, offset ground
-             call Writestring
+          mov dl,0
+          mov dh,29
+          call gotoxy
+          mov edx, offset ground
+          call Writestring
 
           call dropPlayer
           call createRandomCoin
@@ -144,47 +144,48 @@ main ENDP
 
 dropPlayer proc near
 ;draw Player at (xPosition, yPosition)
-     mov dl, xPosition
-	 mov dh, yPosition
-	 call gotoxy
-     mov al, 'X'
-	 call WriteChar
-	 ret
+              mov dl, xPosition
+	      mov dh, yPosition
+	      call gotoxy
+              mov al, 'X'
+	      call WriteChar
+	      ret
 dropPlayer endp
 
-updatePlayer proc
-     mov dl, xPosition
-	 mov dh, yPosition
-	 call gotoxy
-     mov al, ' '
-	 call WriteChar
-	 ret
+updatePlayer proc near
+              mov dl, xPosition
+	      mov dh, yPosition
+	      call gotoxy
+              mov al, ' '
+	      call WriteChar
+	      ret
 updatePlayer endp
 
-DropCoin PROC
-	mov eax,red (red * 16)
-	call SetTextColor
-	mov dl,xCPosition
-	mov dh,yCPosition
-	call Gotoxy
-	mov al,"X"
-	call WriteChar
-	ret
+DropCoin PROC near
+	       mov eax, red (red * 16)
+	       call SetTextColor
+	       mov dl, xCPosition
+	       mov dh, yCPosition
+	       call Gotoxy
+	       mov al, "X"
+	       call WriteChar
+	       ret
 DropCoin ENDP
 
 
-createRandomCoin proc
-     mov eax, 50
-	 call RandomRange
-	 mov xCPosition,al
-	 mov yCPosition,27
-	 ret
+createRandomCoin proc near
+               mov eax, 50
+	       call RandomRange
+	       mov xCPosition,al
+	       mov yCPosition,27
+	       ret
 createRandomCoin endp
 
-aboveDigitPrinting proc
-	add al , 30
-	add al,"0"
-	call WriteString
-aboveDigitPrinting endp
+;recomended if there is no round
+;aboveDigitPrinting proc 
+;	mov dl , al
+;       add dl , D      where D is the difference value between the scorer and its crosponding char in ASCII
+;	call WriteString
+;aboveDigitPrinting endp 
 
 END main
