@@ -1,169 +1,190 @@
-INCLUDE Irvine32.inc
+INCLUDE Irvine32.inc ;library
 
 .data
 
 ground BYTE "------------------------------------------------------------------------------------------------------------------------",0
-
 strScore BYTE "Your score is: ",0
 score BYTE 0
 
-xPos BYTE 20
-yPos BYTE 20
+EndRound BYTE "YOU'VE GOT 10 CIONS!, YOU WON!!",0
+xPosition byte 20
+yPosition byte 20
 
-xCoinPos BYTE ?
-yCoinPos BYTE ?
+inputChar byte ?
 
-inputChar BYTE ?
+xCPosition byte ?
+yCPosition byte ?
 
 .code
-main PROC
-	; draw ground at (0,29):
-	mov dl,0
-	mov dh,29
-	call Gotoxy
-	mov edx,OFFSET ground
-	call WriteString
+main PROC far
 
-	call DrawPlayer
+; draw ground
+             mov dl,0
+             mov dh,29
+             call gotoxy
+             mov edx, offset ground
+             call Writestring
 
-	call CreateRandomCoin
-	call DrawCoin
+          call dropPlayer
+          call createRandomCoin
+          call DropCoin
 
-	call Randomize
+          call Randomize
 
-	gameLoop:
-
-		; getting points:
-		mov bl,xPos
-		cmp bl,xCoinPos
+   gameLoop:
+; getting points
+		mov bl,xPosition
+		cmp bl,xCPosition
 		jne notCollecting
-		mov bl,yPos
-		cmp bl,yCoinPos
+		mov bl,yPosition
+		cmp bl,yCPosition
 		jne notCollecting
-		; player is intersecting coin:
+
+;player is intersecting coin:
 		inc score
 		call CreateRandomCoin
-		call DrawCoin
+		call DropCoin
+	
 		notCollecting:
+        	mov eax,white (black * 16)
+                call SetTextColor 
 
-		mov eax,white (black * 16)
-		call SetTextColor
 
-		; draw score:
-		mov dl,0
-		mov dh,0
-		call Gotoxy
-		mov edx,OFFSET strScore
-		call WriteString
-		mov al,score
-		call WriteInt
+;draw score
+              mov dl, 0
+              mov dh, 0
+              call gotoxy
+              mov edx, offset strScore
+              call Writestring
 
-		; gravity logic:
-		gravity:
-		cmp yPos,27
-		jg onGround
-		; make player fall:
-		call UpdatePlayer
-		inc yPos
-		call DrawPlayer
-		mov eax,80
-		call Delay
-		jmp gravity
-		onGround:
+	      mov al, score
+	      cmp al, 10
+	      jge exiteround
+	      add al,"0"
+	      call Writechar
 
-		; get user key input:
-		call ReadChar
-		mov inputChar,al
+;gravity logic
+   gravity:
+             cmp yPosition , 28
+             jge onGround
 
-		; exit game if user types 'x':
-		cmp inputChar,"x"
-		je exitGame
+   ;make player fall
+             call updatePlayer
+	     inc yPosition
+	     call dropPlayer
+	     mov eax, 100
+	     call delay
+	     jmp gravity
 
-		cmp inputChar,"w"
-		je moveUp
+    onGround:
+;get user key input
+             call ReadChar
+             mov  inputChar, al
 
-		cmp inputChar,"s"
-		je moveDown
+;exit game if user typed X
+         cmp inputChar,"x"
+	 je exitGame
 
-		cmp inputChar,"a"
-		je moveLeft
+	 cmp inputChar,"w"
+	 je moveUp
 
-		cmp inputChar,"d"
-		je moveRight
+	 cmp inputChar,"s"
+	 je moveDown
 
-		moveUp:
-		; allow player to jump:
-		mov ecx,1
-		jumpLoop:
-			call UpdatePlayer
-			dec yPos
-			call DrawPlayer
-			mov eax,70
-			call Delay
-		loop jumpLoop
-		jmp gameLoop
+	 cmp inputChar,"a"
+	 je moveLeft
 
-		moveDown:
-		call UpdatePlayer
-		inc yPos
-		call DrawPlayer
-		jmp gameLoop
+	 cmp inputChar,"d"
+	 je moveRight
 
-		moveLeft:
-		call UpdatePlayer
-		dec xPos
-		call DrawPlayer
-		jmp gameLoop
+	 moveUp:  
+;allow player to jump
+               mov ecx, 1
+	       jumpLoop:
+	       call updatePlayer
+	       dec yPosition
+	       call dropPlayer
+	       mov eax, 10
+	       call delay 
+	       
+	  loop jumpLoop
+	  jmp gameLoop
 
-		moveRight:
-		call UpdatePlayer
-		inc xPos
-		call DrawPlayer
-		jmp gameLoop
+	 moveDown:
+	 call updatePlayer
+	 inc yPosition
+	 call dropPlayer
+	  jmp gameLoop
 
-	jmp gameLoop
 
-	exitGame:
+	 moveLeft:
+	 call updatePlayer
+	 dec xPosition
+	 call dropPlayer
+	  jmp gameLoop
+
+	 moveRight:
+	 call updatePlayer
+	 inc xPosition
+	 call dropPlayer
+	  jmp gameLoop
+
+   jmp gameLoop
+   
+   exiteround:
+           mov dl, 35
+           mov dh, 14
+           call gotoxy
+           mov edx, offset EndRound
+	   call Writestring
+
+        exitGame:
 	exit
 main ENDP
 
-DrawPlayer PROC
-	; draw player at (xPos,yPos):
-	mov dl,xPos
-	mov dh,yPos
-	call Gotoxy
-	mov al,"X"
-	call WriteChar
-	ret
-DrawPlayer ENDP
+dropPlayer proc near
+;draw Player at (xPosition, yPosition)
+     mov dl, xPosition
+	 mov dh, yPosition
+	 call gotoxy
+     mov al, 'X'
+	 call WriteChar
+	 ret
+dropPlayer endp
 
-UpdatePlayer PROC
-	mov dl,xPos
-	mov dh,yPos
-	call Gotoxy
-	mov al," "
-	call WriteChar
-	ret
-UpdatePlayer ENDP
+updatePlayer proc
+     mov dl, xPosition
+	 mov dh, yPosition
+	 call gotoxy
+     mov al, ' '
+	 call WriteChar
+	 ret
+updatePlayer endp
 
-DrawCoin PROC
-	mov eax,yellow (yellow * 16)
+DropCoin PROC
+	mov eax,red (red * 16)
 	call SetTextColor
-	mov dl,xCoinPos
-	mov dh,yCoinPos
+	mov dl,xCPosition
+	mov dh,yCPosition
 	call Gotoxy
 	mov al,"X"
 	call WriteChar
 	ret
-DrawCoin ENDP
+DropCoin ENDP
 
-CreateRandomCoin PROC
-	mov eax,55
-	inc eax
-	call RandomRange
-	mov xCoinPos,al
-	mov yCoinPos,27
-	ret
-CreateRandomCoin ENDP
+
+createRandomCoin proc
+     mov eax, 50
+	 call RandomRange
+	 mov xCPosition,al
+	 mov yCPosition,27
+	 ret
+createRandomCoin endp
+
+aboveDigitPrinting proc
+	add al , 30
+	add al,"0"
+	call WriteString
+aboveDigitPrinting endp
 
 END main
